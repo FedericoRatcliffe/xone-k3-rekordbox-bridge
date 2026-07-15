@@ -109,8 +109,10 @@ teVirtualMIDI the feedback comes to us instead — no loop.
    .\.venv\Scripts\Activate.ps1
    pip install -r requirements.txt
    ```
-4. **Configure your Xone:K3** in the free *Xone Controller Editor* so Layer 1 sends on **MIDI
-   channel 15** with the mapping below (this is what `config/xone_k3_input.yaml` expects):
+4. **Configure your Xone:K3** so it sends the mapping the bridge expects. The easy way: open
+   the free *Xone Controller Editor*, load **[`hardware/Xone-K3-Factory-Map1.xml`](hardware/Xone-K3-Factory-Map1.xml)**
+   and write it to the unit (details in **[hardware/README.md](hardware/README.md)**). It sets
+   Layer 1 to **MIDI channel 15** with this mapping (what `config/xone_k3_input.yaml` expects):
 
    | Function | Col 1 | Col 2 | Col 3 | Col 4 | Type |
    |---|---|---|---|---|---|
@@ -280,8 +282,10 @@ fantasma. Con teVirtualMIDI el feedback nos llega a nosotros — sin loop.
    .\.venv\Scripts\Activate.ps1
    pip install -r requirements.txt
    ```
-4. **Configurá tu Xone:K3** en el *Xone Controller Editor* para que el Layer 1 mande en
-   **canal MIDI 15** con este mapeo (es lo que espera `config/xone_k3_input.yaml`):
+4. **Configurá tu Xone:K3** para que mande el mapeo que el bridge espera. La vía fácil: abrí
+   el *Xone Controller Editor* (gratis), cargá **[`hardware/Xone-K3-Factory-Map1.xml`](hardware/Xone-K3-Factory-Map1.xml)**
+   y escribílo a la unidad (detalles en **[hardware/README.md](hardware/README.md)**). Deja el
+   Layer 1 en **canal MIDI 15** con este mapeo (lo que espera `config/xone_k3_input.yaml`):
 
    | Función | Col 1 | Col 2 | Col 3 | Col 4 | Tipo |
    |---|---|---|---|---|---|
