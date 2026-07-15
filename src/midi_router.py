@@ -63,6 +63,23 @@ class MidiRouter:
         # canal MIDI -> índice de deck (para saber qué columna del K3 prender).
         self.channel_to_deck = {ch: i for i, ch in enumerate(self.deck_to_channel)}
 
+        # --- Estados a forzar ON al arrancar (Master Tempo, Quantize) ---
+        self.startup_enable = target_cfg.get("startup_enable") or {}
+        # (tipo, numero) -> (funcion, scope)
+        self.startup_reverse = {
+            ("note", s["number"]): (func, s.get("scope", "per_deck"))
+            for func, s in self.startup_enable.items()
+            if s.get("type") == "note"
+        }
+
+        # --- Posiciones de controles absolutos (faders/EQ) para restaurar al reiniciar ---
+        # Sembramos defaults seguros; main.py después superpone lo guardado en disco.
+        self.positions: dict = {}
+        for func, ctrl in self.input_controls.items():
+            if ctrl.get("type") == "cc" and ctrl.get("kind") == "absolute" and "default" in ctrl:
+                for deck in range(len(ctrl.get("cc") or [])):
+                    self.positions[(func, deck)] = ctrl["default"]
+
     @staticmethod
     def _key(msg):
         if msg.type == "control_change":
@@ -90,19 +107,10 @@ class MidiRouter:
             side = target["cw"] if direction > 0 else target["ccw"]
             return self._pulse(side["number"], channel)
 
-        # 2) CC absoluto (EQ, fader).
+        # 2) CC absoluto (EQ, fader). Guardamos la posición para restaurarla al reiniciar.
         if target["type"] == "cc":
-            if target.get("hires"):
-                # HiRes 14-bit: RB reconstruye el valor con MSB (CC N) + LSB (CC N+32).
-                # Escalamos el 7-bit del K3 (0-127) a 14-bit (0-16383) para usar todo el rango.
-                v14 = round(value / 127 * 16383)
-                msb, lsb = (v14 >> 7) & 0x7F, v14 & 0x7F
-                return [
-                    mido.Message("control_change", channel=channel, control=target["number"], value=msb),
-                    mido.Message("control_change", channel=channel, control=target["number"] + 32, value=lsb),
-                ]
-            return [mido.Message("control_change", channel=channel,
-                                 control=target["number"], value=value)]
+            self.positions[(func, deck_idx)] = value
+            return self._cc_messages(target, channel, value)
 
         # 3) Note (play / cue / sync / loop-on).
         if target["type"] == "note":
@@ -145,6 +153,62 @@ class MidiRouter:
 
         velocity = 127 if on > 0 else 0
         return [mido.Message("note_on", channel=self.k3_channel, note=notes[deck], velocity=velocity)]
+
+    def feedback_enforce(self, msg, done: set) -> list:
+        """Al arrancar, fuerza Master Tempo / Quantize a ON (plug-and-play en cualquier PC).
+
+        Usa el feedback de RB para saber el estado real: si RB reporta que están en OFF,
+        devuelve el toggle a mandarle a RB para prenderlos. Actúa UNA sola vez por objetivo
+        (marca en `done`), así no pelea si después los apagás a mano.
+        Devuelve (mensajes_para_RB, texto_log) — o ([], "") si no hay nada que hacer.
+        """
+        if msg.type not in ("note_on", "note_off"):
+            return [], ""
+        spec = self.startup_reverse.get(("note", msg.note))
+        if spec is None:
+            return [], ""
+        func, scope = spec
+        deck = self.channel_to_deck.get(msg.channel)
+        if deck is None:
+            return [], ""
+        marker = (func,) if scope == "once" else (func, deck)
+        if marker in done:
+            return [], ""
+        done.add(marker)                       # visto: no lo tocamos más
+
+        state_on = msg.type == "note_on" and msg.velocity > 0
+        if state_on:
+            return [], ""                       # ya está ON, no hacemos nada
+
+        ch = self.deck_to_channel[deck]
+        toggle = [
+            mido.Message("note_on", channel=ch, note=msg.note, velocity=127),
+            mido.Message("note_off", channel=ch, note=msg.note, velocity=0),
+        ]
+        where = "global" if scope == "once" else f"deck {deck + 1}"
+        return toggle, f"[startup] {func} estaba OFF ({where}) -> lo prendo"
+
+    def replay_positions(self) -> list:
+        """Mensajes para restaurar en RB las últimas posiciones de faders/EQ (al reiniciar)."""
+        out: list = []
+        for (func, deck), value in self.positions.items():
+            target = self.target_map.get(func)
+            if not target or target.get("type") != "cc":
+                continue
+            channel = self.deck_to_channel[deck] if deck < len(self.deck_to_channel) else 0
+            out += self._cc_messages(target, channel, value)
+        return out
+
+    @staticmethod
+    def _cc_messages(target: dict, channel: int, value: int) -> list:
+        """CC absoluto -> mensaje(s). HiRes manda MSB (CC N) + LSB (CC N+32) escalando a 14-bit."""
+        if target.get("hires"):
+            v14 = round(value / 127 * 16383)
+            return [
+                mido.Message("control_change", channel=channel, control=target["number"], value=(v14 >> 7) & 0x7F),
+                mido.Message("control_change", channel=channel, control=target["number"] + 32, value=v14 & 0x7F),
+            ]
+        return [mido.Message("control_change", channel=channel, control=target["number"], value=value)]
 
     @staticmethod
     def _pulse(note: int, channel: int) -> list:

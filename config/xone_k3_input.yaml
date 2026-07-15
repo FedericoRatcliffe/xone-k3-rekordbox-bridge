@@ -22,29 +22,35 @@ controls:
     kind: trigger
     note: [52, 53, 54, 55]
 
+  # 'default' = valor seguro para el PRIMER arranque (sin historial guardado).
+  # EQ al centro (64 = neutro, sin cortar ni realzar); fader abajo (0 = silencio).
   eq_high:
     label: "EQ HIGH"
     type: cc
     kind: absolute        # 0-127
     cc: [4, 5, 6, 7]
+    default: 64
 
   eq_mid:
     label: "EQ MID"
     type: cc
     kind: absolute
     cc: [8, 9, 10, 11]
+    default: 64
 
   eq_low:
     label: "EQ LOW"
     type: cc
     kind: absolute
     cc: [12, 13, 14, 15]
+    default: 64
 
   fader:
     label: "Fader (Volumen)"
     type: cc
     kind: absolute
     cc: [16, 17, 18, 19]
+    default: 0
 
   play_pause:
     label: "Play/Pause"

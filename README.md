@@ -30,9 +30,11 @@ K3 real  ──►  monitor/router (Python)  ──►  puerto virtual "Pioneer"
 - [x] Continuos **HiRes 14-bit** (MSB+LSB) y botones con "toque" limpio (on+off)
 - [x] **FUNCIONA end-to-end**: Play/Cue/Sync, faders, EQ, loops (select + on/off) en los 4 decks ✅
 - [x] **Feedback de LEDs bidireccional** (`src/test_led.py` + `translate_feedback` + `feedback_loop`): RB → K3, siguen el estado real en los colores del editor ✅
+- [x] **Arranque plug-and-play**: fuerza Master Tempo + Quantize a ON en los 4 decks al conectar (gateado por el estado real de RB, no pelea)
+- [x] **Persistencia de posiciones**: recuerda dónde dejaste faders/EQ y los restaura en RB al reiniciar (`src/positions.py`)
+- [x] Apagado prolijo con Ctrl+C (sondeo no bloqueante) + versionado en Git
 - [ ] Hot Cues (notas 40-43 libres del K3)
 - [ ] Layers/shift custom, macros
-- [ ] Versionar en Git
 - [ ] Layers/shift custom, macros
 
 ## Quickstart

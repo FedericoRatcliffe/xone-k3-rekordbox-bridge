@@ -4,6 +4,9 @@ __pycache__/
 *.pyc
 *.pyo
 
+# Estado runtime (posiciones de faders/knobs recordadas)
+state/
+
 # Editores / OS
 .vscode/
 .idea/

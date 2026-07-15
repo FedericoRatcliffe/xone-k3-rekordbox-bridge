@@ -23,11 +23,15 @@ from __future__ import annotations
 import argparse
 import sys
 import threading
+import time
 
 import mido
 
-from midi_router import MidiRouter, load_yaml, INPUT_CFG, TARGET_CFG
+from midi_router import MidiRouter, load_yaml, INPUT_CFG, TARGET_CFG, ROOT
 from te_virtualmidi import VirtualMidiPort
+from positions import load_positions, save_positions
+
+STATE_FILE = ROOT / "state" / "positions.json"
 
 
 def pick(ports: list[str], preferred: str | None, needles: tuple[str, ...]) -> str | None:
@@ -49,19 +53,43 @@ def clear_leds(k3_out, channel: int) -> None:
         k3_out.send(mido.Message("note_on", channel=channel, note=n, velocity=0))
 
 
+def replay_scheduler(vport: VirtualMidiPort, router: MidiRouter) -> None:
+    """Reasienta las posiciones de faders/EQ varias veces tras conectar RB.
+    RB tarda en abrir su entrada MIDI e inicializar el mixer, así que un solo envío se pierde.
+    Es seguro repetir: `replay_positions` manda la posición ACTUAL (si movés algo, manda ese
+    valor nuevo), así que no pelea con lo que toques."""
+    for delay in (0.3, 0.7, 1.5, 3.0, 5.0):
+        time.sleep(delay)
+        for m in router.replay_positions():
+            vport.send(bytes(m.bytes()))
+
+
 def feedback_loop(vport: VirtualMidiPort, router: MidiRouter, k3_out) -> None:
-    """Hilo: recibe feedback de RB, lo traduce a LEDs y lo manda al K3.
-    Como el puente ES el device (no loopback), esto NO vuelve a RB -> sin loop."""
+    """Hilo: recibe feedback de RB. Lo usa para (1) LEDs del K3 y (2) forzar Master Tempo /
+    Quantize a ON al arrancar. Como el puente ES el device (no loopback), no hay loop."""
     parser = mido.Parser()
+    enforced: set = set()
+    replayed = False
     while True:
         data = vport.get()
         if data is None:      # el puerto se cerró
             return
+        if not replayed:      # RB acaba de conectar -> restauramos posiciones (varias veces)
+            replayed = True
+            threading.Thread(target=replay_scheduler, args=(vport, router), daemon=True).start()
+            print(f"[startup] restaurando posiciones de faders/EQ ({len(router.positions)} controles)...")
         parser.feed(data)
         for rb_msg in parser:
+            # (1) LEDs: RB -> K3
             for led in router.translate_feedback(rb_msg):
                 if k3_out is not None:
                     k3_out.send(led)
+            # (2) Startup enable: forzar Master Tempo / Quantize a ON (una vez, si están OFF)
+            toggle, log = router.feedback_enforce(rb_msg, enforced)
+            for m in toggle:
+                vport.send(bytes(m.bytes()))
+            if log:
+                print(log)
 
 
 def main() -> None:
@@ -78,6 +106,7 @@ def main() -> None:
         return
 
     router = MidiRouter(load_yaml(INPUT_CFG), load_yaml(TARGET_CFG))
+    router.positions.update(load_positions(STATE_FILE))   # superpone lo guardado sobre los defaults
     target_name = load_yaml(TARGET_CFG).get("target", {}).get("device_name", "PIONEER DDJ-SX2")
 
     in_name = pick(mido.get_input_names(), args.in_port, ("xone", "k3"))
@@ -106,17 +135,24 @@ def main() -> None:
 
     with mido.open_input(in_name) as inport:
         try:
-            for msg in inport:
-                outs = router.translate(msg)
-                for o in outs:
-                    if vport:
-                        vport.send(bytes(o.bytes()))
-                    print(f"  K3 {msg.type:<13} -> {o}")
-                if not outs and msg.type in ("control_change", "note_on", "note_off"):
-                    print(f"  K3 {msg.type:<13} (sin mapeo) {msg}")
+            # Sondeo no bloqueante + micro-pausa: así Ctrl+C se atrapa al instante
+            # (el bucle bloqueante clásico se queda trabado en código nativo y lo ignora).
+            while True:
+                for msg in inport.iter_pending():
+                    outs = router.translate(msg)
+                    for o in outs:
+                        if vport:
+                            vport.send(bytes(o.bytes()))
+                        print(f"  K3 {msg.type:<13} -> {o}")
+                    if not outs and msg.type in ("control_change", "note_on", "note_off"):
+                        print(f"  K3 {msg.type:<13} (sin mapeo) {msg}")
+                time.sleep(0.002)
         except KeyboardInterrupt:
             print("\nChau.")
         finally:
+            if not args.dry_run:
+                save_positions(STATE_FILE, router.positions)   # recordar posiciones para la próxima
+                print("Posiciones guardadas.")
             if k3_out is not None:
                 clear_leds(k3_out, router.k3_channel)
                 k3_out.close()
