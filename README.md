@@ -103,8 +103,8 @@ teVirtualMIDI the feedback comes to us instead — no loop.
    You do **not** need to create a port — the bridge creates its own `PIONEER DDJ-SX2`.
 3. **Clone this repo** and create the environment:
    ```powershell
-   git clone <your-repo-url> xone-k3-bridge
-   cd xone-k3-bridge
+   git clone https://github.com/FedericoRatcliffe/xone-k3-rekordbox-bridge.git
+   cd xone-k3-rekordbox-bridge
    py -3.12 -m venv .venv
    .\.venv\Scripts\Activate.ps1
    pip install -r requirements.txt
@@ -274,8 +274,8 @@ fantasma. Con teVirtualMIDI el feedback nos llega a nosotros — sin loop.
    **No** hace falta crear un puerto — el puente crea el suyo (`PIONEER DDJ-SX2`).
 3. **Cloná el repo** y creá el entorno:
    ```powershell
-   git clone <url-de-tu-repo> xone-k3-bridge
-   cd xone-k3-bridge
+   git clone https://github.com/FedericoRatcliffe/xone-k3-rekordbox-bridge.git
+   cd xone-k3-rekordbox-bridge
    py -3.12 -m venv .venv
    .\.venv\Scripts\Activate.ps1
    pip install -r requirements.txt
