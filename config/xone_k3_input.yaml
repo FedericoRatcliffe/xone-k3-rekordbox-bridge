@@ -1,0 +1,69 @@
+# Mapa de ENTRADA: qué manda cada control del Xone K3 (Layer 1, config de fábrica actual).
+# Patrón: offset +1 por columna (deck). Col 1..4 = índices 0..3 de cada lista.
+#
+# Canal CONFIRMADO con monitor.py (jul/2026): el K3 manda en canal 15 (1-based) = nibble 0xE.
+# En mido (0-based) eso es channel 14. NO era hex F/16 como sugería el prompt.
+# El router no filtra por canal: identifica cada control por su número de CC/Note.
+device:
+  name: "Xone K3"
+  midi_channel: 15        # 1-based (como lo muestra el editor). En mido/0-based = 14.
+
+# Cada control lista los números por columna (deck 1, 2, 3, 4).
+controls:
+  encoder_turn:
+    label: "Encoder TURN (Loop Size)"
+    type: cc
+    kind: relative
+    cc: [0, 1, 2, 3]
+
+  encoder_push:
+    label: "Encoder PUSH (Loop On/Off)"
+    type: note
+    kind: trigger
+    note: [52, 53, 54, 55]
+
+  eq_high:
+    label: "EQ HIGH"
+    type: cc
+    kind: absolute        # 0-127
+    cc: [4, 5, 6, 7]
+
+  eq_mid:
+    label: "EQ MID"
+    type: cc
+    kind: absolute
+    cc: [8, 9, 10, 11]
+
+  eq_low:
+    label: "EQ LOW"
+    type: cc
+    kind: absolute
+    cc: [12, 13, 14, 15]
+
+  fader:
+    label: "Fader (Volumen)"
+    type: cc
+    kind: absolute
+    cc: [16, 17, 18, 19]
+
+  play_pause:
+    label: "Play/Pause"
+    type: note
+    kind: trigger
+    note: [24, 25, 26, 27]
+
+  cue:
+    label: "Cue (hold)"
+    type: note
+    kind: gate            # nota on al apretar, off al soltar
+    note: [28, 29, 30, 31]
+
+  sync:
+    label: "Sync"
+    type: note
+    kind: trigger
+    note: [32, 33, 34, 35]
+
+# Grilla inferior 4x4 (16 botones): Play/Cue/Sync ya usan algunos.
+# El resto queda libre para Hot Cues u otras funciones — los mapeamos cuando
+# los veamos en el monitor y decidamos qué función darles.

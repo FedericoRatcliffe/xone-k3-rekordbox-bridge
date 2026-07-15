@@ -1,0 +1,9 @@
+# XoneK3-Rekordbox MIDI Bridge — dependencias Python
+#
+# IMPORTANTE: python-rtmidi NO tiene wheel precompilado para Python 3.14 (a jul/2026).
+# En 3.14 pip intenta compilar desde C y falla si no tenés Visual Studio Build Tools.
+# Solucion recomendada: usar Python 3.12 (o 3.13). Ver docs/SETUP_WINDOWS.md.
+
+mido>=1.3,<2
+python-rtmidi>=1.5,<2
+PyYAML>=6,<7

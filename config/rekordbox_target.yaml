@@ -1,0 +1,40 @@
+# Mapa de SALIDA (target): qué mensaje MIDI "Pioneer" emular por cada función.
+#
+# Dispositivo emulado: DDJ-SX2 (controller completo, Serato/rekordbox).
+# Por qué el SX2 y no el DDJ-1000:
+#   - En el perfil del DDJ-1000 el channel fader está COMENTADO (#ChannelFader): en el
+#     hardware real es un fader analógico, Rekordbox no lo escucha por MIDI -> tu fader
+#     del K3 no haría nada.
+#   - En el DDJ-SX2 el ChannelFader (CC 0x13) está ACTIVO -> tu fader mueve el volumen real.
+#   - Play/Cue/Sync/EQ usan los MISMOS códigos que el DDJ-1000, así que no perdés nada.
+#   - Es el linaje probado por davr (usó DDJ-SX) con la técnica del puerto virtual.
+# El target es INTERCAMBIABLE: si más adelante querés 4 decks nativos estilo DDJ-1000,
+# se cambia este archivo + el nombre del puerto loopMIDI. Nada más.
+#
+# Convención Pioneer: cada DECK = un canal MIDI.
+#   deck1 -> ch1, deck2 -> ch2, deck3 -> ch3, deck4 -> ch4
+#   (en mido los canales son 0-based: deck1=0, deck2=1, deck3=2, deck4=3)
+# Números en DECIMAL (el CSV oficial los trae en hex; acá van como int).
+
+target:
+  device_name: "PIONEER DDJ-SX2"   # nombre EXACTO que debe tener el puerto loopMIDI
+  deck_to_channel: [0, 1, 2, 3]    # deck 1..4 -> canal MIDI 0-based
+
+# Cada clave coincide con un control de config/xone_k3_input.yaml.
+map:
+  play_pause:   { type: note, number: 11 }   # 0x0B  PlayPause
+  cue:          { type: note, number: 12 }   # 0x0C  Cue (set / play from cue)
+  sync:         { type: note, number: 88 }   # 0x58  Sync On/Off
+  # Estos son "KnobSliderHiRes" (14-bit) en el DDJ-SX2: RB espera MSB en CC N + LSB en CC N+32.
+  # hires: true -> el router manda los DOS mensajes. Sin esto, el control casi no se mueve.
+  eq_high:      { type: cc,   number: 7,  hires: true }   # 0x07  EQ High  (LSB en CC 39)
+  eq_mid:       { type: cc,   number: 11, hires: true }   # 0x0B  EQ Mid   (LSB en CC 43)
+  eq_low:       { type: cc,   number: 15, hires: true }   # 0x0F  EQ Low   (LSB en CC 47)
+  fader:        { type: cc,   number: 19, hires: true }   # 0x13  ChannelFader volumen (LSB en CC 51)
+  encoder_push: { type: note, number: 20 }    # 0x14  AutoLoop On/Off  (tu "Loop On/Off")
+
+  # El encoder TURN del K3 es RELATIVO. Un giro a cada lado dispara half/double:
+  encoder_turn:
+    relative: true
+    ccw: { type: note, number: 18 }   # 0x12  LoopHalf   (achicar loop)
+    cw:  { type: note, number: 19 }   # 0x13  LoopDouble (agrandar loop)

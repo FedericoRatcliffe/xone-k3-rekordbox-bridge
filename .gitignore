@@ -1,0 +1,12 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Editores / OS
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+.DS_Store
