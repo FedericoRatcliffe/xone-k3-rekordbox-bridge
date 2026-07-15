@@ -35,6 +35,24 @@ middle sits a Python script that:
 The mapping lives in editable YAML files, versioned in Git — not trapped inside Rekordbox's
 database.
 
+### Why does this exist?
+
+The Xone:K3 was released in **October 2025** — it's brand new, the successor to the legendary
+K2. Rekordbox has **no native support** for it, and Rekordbox reserves its best behaviour
+(reliable LED feedback, native deck control, advanced features) for officially supported
+Pioneer / AlphaTheta hardware. A third‑party controller like the K3 is stuck with basic
+**MIDI Learn**: flaky or no LED feedback, restricted control, and a mapping locked inside
+Rekordbox's database instead of living in versionable files.
+
+And you can't just hand Rekordbox a mapping file either: it **validates** its device mapping
+files (`.midi` / CSV) beyond their format, so hand‑made mappings — even ones dressed up to
+look like an official device — get rejected.
+
+So this project flips the approach. Instead of trying to make Rekordbox accept the K3, it
+makes the K3 **present itself as hardware Rekordbox already fully supports** — a Pioneer
+DDJ‑SX2 — and does the translation in the middle. That unlocks the complete native profile
+(LEDs, loops, 4‑deck control) for a controller Rekordbox would otherwise cripple.
+
 ### How it works
 
 ```
@@ -185,6 +203,24 @@ del DDJ-SX2**. En el medio hay un script de Python que:
 
 El mapeo vive en archivos YAML editables, versionados en Git — no atrapado dentro de la base
 de datos de Rekordbox.
+
+### ¿Por qué existe esto?
+
+El Xone:K3 salió en **octubre de 2025** — es nuevísimo, el sucesor del legendario K2.
+Rekordbox **no tiene soporte nativo** para él, y reserva su mejor comportamiento (feedback de
+LEDs confiable, control nativo de deck, funciones avanzadas) para hardware Pioneer / AlphaTheta
+oficial. Un controlador de terceros como el K3 queda atado al **MIDI Learn** básico: feedback
+de LEDs pobre o inexistente, control restringido, y un mapeo encerrado en la base de datos de
+Rekordbox en vez de vivir en archivos versionables.
+
+Y tampoco podés simplemente pasarle a Rekordbox un archivo de mapeo: **valida** sus archivos
+de mapeo de dispositivo (`.midi` / CSV) más allá del formato, así que los mapeos hechos a mano
+— incluso disfrazados de un dispositivo oficial — son rechazados.
+
+Por eso este proyecto invierte el enfoque. En vez de intentar que Rekordbox acepte el K3, hace
+que el K3 **se presente como hardware que Rekordbox ya soporta completamente** — un Pioneer
+DDJ‑SX2 — y hace la traducción en el medio. Eso desbloquea el perfil nativo completo (LEDs,
+loops, control de 4 decks) para un controlador que Rekordbox de otra forma capa.
 
 ### Cómo funciona
 
