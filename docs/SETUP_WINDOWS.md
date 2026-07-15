@@ -25,31 +25,26 @@ pip install -r requirements.txt
 Si `Activate.ps1` da error de permisos:
 `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`
 
-## 3. loopMIDI (puerto MIDI virtual)
+## 3. loopMIDI (solo por el driver teVirtualMIDI)
 
-En Windows, `python-rtmidi` no puede crear puertos virtuales por sí solo, por eso usamos
-**loopMIDI** (gratis, de Tobias Erichsen) para crear el puerto a nivel de sistema.
+En Windows, `python-rtmidi` no puede crear puertos virtuales por sí solo. Pero **no** creamos
+un puerto en loopMIDI: el puente crea el suyo (`PIONEER DDJ-SX2`) por código, usando
+**teVirtualMIDI** — el driver que está por debajo de loopMIDI.
 
-1. Descargar e instalar loopMIDI: https://www.tobias-erichsen.de/software/loopmidi.html
-2. Abrir loopMIDI y crear un puerto nuevo. El **nombre importa** (ver más abajo).
-3. Dejarlo abierto: el puerto existe mientras loopMIDI corre.
+¿Por qué teVirtualMIDI y no un puerto loopMIDI común? Un puerto loopMIDI es un *loopback*:
+reflejaría el feedback de LEDs de Rekordbox de vuelta hacia Rekordbox, causando plays / cues
+fantasma. Con teVirtualMIDI, el puente **es** el dispositivo, así que ese feedback nos llega a
+nosotros — sin loop.
 
-### Nombre del puerto virtual (IMPORTANTE)
+Lo único que necesitás de loopMIDI es que **instale el driver**:
 
-Rekordbox reconoce el dispositivo por **name-matching**: si el puerto se llama igual que
-un controlador Pioneer soportado, RB carga su perfil nativo. Emulamos el **DDJ-SX2**, así
-que el puerto de loopMIDI tiene que llamarse **exactamente**:
+1. Descargá e instalá loopMIDI: https://www.tobias-erichsen.de/software/loopmidi.html
+2. Listo. **No** hace falta abrir loopMIDI ni crear ningún puerto. El instalador deja el
+   driver `teVirtualMIDI64.sys` y el DLL `C:\Windows\System32\teVirtualMIDI64.dll`, que es lo
+   que usa `src/te_virtualmidi.py`.
 
-```
-PIONEER DDJ-SX2
-```
-
-(en loopMIDI, escribí ese nombre en "New port-name" y dale "+"). Puede que Windows le
-agregue un sufijo tipo `PIONEER DDJ-SX2 1` — no pasa nada, el puente lo detecta por
-substring, y para el name-matching de RB probamos ambas variantes.
-
-> Para el paso de solo escuchar el K3 (monitor.py) NO hace falta loopMIDI. Sí hace falta
-> para el forward real hacia Rekordbox.
+> Para solo escuchar el K3 (`monitor.py`) no hace falta ni loopMIDI. El puerto virtual solo se
+> usa para el forward real hacia Rekordbox (`main.py`).
 
 ## 4. Validación mínima (paso 3): escuchar el K3
 
@@ -65,9 +60,20 @@ Al mover un control vas a ver el mensaje MIDI decodificado y etiquetado, p. ej.:
 ```
 ch  tipo            num val  control
 ----------------------------------------------------
-16  control_change   16 100  Fader (Volumen)  [Col 1]
+15  control_change   16 100  Fader (Volumen)  [Col 1]
 ```
 
-- Si la columna `ch` muestra **16** en vez de 15, es por el tema del nibble hex F — lo
-  confirmamos acá y ajustamos `config/xone_k3_input.yaml`.
-- Si algún control no coincide con la etiqueta esperada, lo anotamos y corregimos el mapa.
+- El K3 manda en **canal 15** (en mido, 0-based, es el canal 14). Si ves otro canal,
+  ajustá `device.midi_channel` en `config/xone_k3_input.yaml`.
+- Si algún control no coincide con la etiqueta esperada, corregí el mapa en ese YAML.
+
+## 5. Correr el puente completo
+
+Con el K3 enchufado y **Rekordbox cerrado**:
+
+```powershell
+python src\main.py     # crea "PIONEER DDJ-SX2" y agarra el K3
+```
+
+Después abrí Rekordbox (detecta el DDJ-SX2). El orden importa: el puente primero. Ver el
+README para el flujo completo, flags y solución de problemas.
