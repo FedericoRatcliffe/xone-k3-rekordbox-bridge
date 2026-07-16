@@ -36,6 +36,14 @@ Un control "por deck" (deck1..deck4 = 0,1,2,3) usa el mismo número en canales 1
 | Headphone Cue (fila 1)  | Note 36-39         | HeadphoneCue           | Note `0x54` (84)          |
 | Browse (Scroll turn)    | CC 21 (relativo)   | Browse (Rotary)        | CC `0x40` (64), canal 7   |
 | Scroll PUSH             | Note 14            | Forward (entrar carpeta)| Note `0x41` (65), canal 7 |
+| EQ High kill            | Note 48-51         | (kill) EQHigh a 0 / restaura | CC `0x07` (7)        |
+| EQ Mid kill             | Note 44-47         | (kill) EQMid a 0 / restaura | CC `0x0B` (11)       |
+| EQ Low kill             | Note 40-43         | (kill) EQLow a 0 / restaura | CC `0x0F` (15)       |
+
+> **EQ kill** es por software: el botón manda esa banda de EQ a 0 (matar) y al re-apretar la
+> restaura al último valor del knob físico (reusa la memoria de posiciones). Mover el knob
+> "destapa". Para el LED, poné el botón en **LED MODE = REMOTE** en el Xone editor: el bridge
+> lo prende cuando la banda está matada.
 
 ### Capa SHIFT (mantené el botón SHIFT = Note 15)
 

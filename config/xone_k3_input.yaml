@@ -78,6 +78,23 @@ controls:
     kind: trigger
     note: [36, 37, 38, 39]
 
+  # EQ Kill: switches al lado de cada knob de EQ. Cada botón mata/restaura esa banda del deck.
+  eq_high_kill:
+    label: "EQ High Kill"
+    type: note
+    kind: trigger
+    note: [48, 49, 50, 51]
+  eq_mid_kill:
+    label: "EQ Mid Kill"
+    type: note
+    kind: trigger
+    note: [44, 45, 46, 47]
+  eq_low_kill:
+    label: "EQ Low Kill"
+    type: note
+    kind: trigger
+    note: [40, 41, 42, 43]
+
   # Encoder SCROLL (giro) -> Browse. Es un control GLOBAL (uno solo, no por deck).
   browse:
     label: "Browse (scroll turn)"

@@ -31,6 +31,12 @@ map:
   eq_mid:       { type: cc,   number: 11, hires: true }   # 0x0B  EQ Mid   (LSB en CC 43)
   eq_low:       { type: cc,   number: 15, hires: true }   # 0x0F  EQ Low   (LSB en CC 47)
   fader:        { type: cc,   number: 19, hires: true }   # 0x13  ChannelFader volumen (LSB en CC 51)
+
+  # EQ Kill: el botón mata/restaura esa banda. El router manda la banda de EQ a 0 y la
+  # restaura a la posición del knob (reusa la memoria de posiciones). `kill` = función de EQ.
+  eq_high_kill: { kill: eq_high }
+  eq_mid_kill:  { kill: eq_mid }
+  eq_low_kill:  { kill: eq_low }
   encoder_push: { type: note, number: 20 }    # 0x14  AutoLoop On/Off  (tu "Loop On/Off")
 
   # El encoder TURN del K3 es RELATIVO. Un giro a cada lado dispara half/double:

@@ -78,6 +78,8 @@ teVirtualMIDI the feedback comes to us instead — no loop.
   to any deck** (SHIFT + that deck's encoder push), and **scrub/seek** the cued track for
   previewing (SHIFT + that deck's encoder turn).
 - ✅ **Headphone cue** per deck (grid row 1), with LED.
+- ✅ **EQ kill** per band per deck: a button by each EQ knob toggles that band off/on (software
+  kill that restores to the knob's real position), with LED indication of the killed state.
 - ✅ **SHIFT layer**: hold the K3's SHIFT button for alternate functions — the bridge tracks
   SHIFT as internal state (the K3 doesn't change its codes under SHIFT).
 - ✅ **Bidirectional LED feedback**: the K3's buttons light up following Rekordbox's real
@@ -132,9 +134,13 @@ teVirtualMIDI the feedback comes to us instead — no loop.
    | Cue | Note 28 | Note 29 | Note 30 | Note 31 | Gate |
    | Sync | Note 32 | Note 33 | Note 34 | Note 35 | Trigger |
    | Headphone cue (grid row 1) | Note 36 | Note 37 | Note 38 | Note 39 | Trigger |
+   | EQ High kill | Note 48 | Note 49 | Note 50 | Note 51 | Trigger |
+   | EQ Mid kill | Note 44 | Note 45 | Note 46 | Note 47 | Trigger |
+   | EQ Low kill | Note 40 | Note 41 | Note 42 | Note 43 | Trigger |
 
-   Global controls (not per‑deck): **Scroll turn** → CC 21 (relative, browse) · **Scroll push**
-   → Note 14 (folder forward/back) · **SHIFT** button → Note 15.
+   Set the EQ‑kill buttons to **LED MODE = REMOTE** in the Xone editor (the bridge drives their
+   LED to show the killed state). Global controls (not per‑deck): **Scroll turn** → CC 21
+   (relative, browse) · **Scroll push** → Note 14 (folder forward/back) · **SHIFT** → Note 15.
 
 5. In **Rekordbox → Preferences → Audio**, make sure the audio device is **your real
    interface**, *not* the DDJ-SX2 (the emulated device is not a real sound card).
@@ -259,6 +265,8 @@ fantasma. Con teVirtualMIDI el feedback nos llega a nosotros — sin loop.
   **cargar a cualquier deck** (SHIFT + el push del encoder de ese deck), y **scrubbear/buscar**
   dentro del tema cueado para pre-escucharlo (SHIFT + el turn del encoder de ese deck).
 - ✅ **Headphone cue** por deck (grilla fila 1), con LED.
+- ✅ **EQ kill** por banda y por deck: un botón al lado de cada knob de EQ apaga/prende esa
+  banda (kill por software que restaura a la posición real del knob), con LED del estado.
 - ✅ **Capa SHIFT**: mantené el botón SHIFT del K3 para funciones alternativas — el bridge
   lleva el SHIFT como estado interno (el K3 no cambia sus códigos con SHIFT).
 - ✅ **Feedback de LEDs bidireccional**: los botones del K3 se prenden siguiendo el estado
@@ -315,9 +323,13 @@ fantasma. Con teVirtualMIDI el feedback nos llega a nosotros — sin loop.
    | Cue | Note 28 | Note 29 | Note 30 | Note 31 | Gate |
    | Sync | Note 32 | Note 33 | Note 34 | Note 35 | Trigger |
    | Headphone cue (grilla fila 1) | Note 36 | Note 37 | Note 38 | Note 39 | Trigger |
+   | EQ High kill | Note 48 | Note 49 | Note 50 | Note 51 | Trigger |
+   | EQ Mid kill | Note 44 | Note 45 | Note 46 | Note 47 | Trigger |
+   | EQ Low kill | Note 40 | Note 41 | Note 42 | Note 43 | Trigger |
 
-   Controles globales (no por deck): **Scroll turn** → CC 21 (relativo, browse) · **Scroll
-   push** → Note 14 (carpeta adelante/atrás) · botón **SHIFT** → Note 15.
+   Poné los botones de EQ‑kill en **LED MODE = REMOTE** en el Xone editor (el bridge maneja su
+   LED para mostrar el estado). Controles globales (no por deck): **Scroll turn** → CC 21
+   (relativo, browse) · **Scroll push** → Note 14 (carpeta adelante/atrás) · botón **SHIFT** → Note 15.
 
 5. En **Rekordbox → Preferencias → Audio**, asegurate de que el dispositivo de audio sea **tu
    interfaz real**, *no* el DDJ-SX2 (el dispositivo emulado no es una placa de sonido real).

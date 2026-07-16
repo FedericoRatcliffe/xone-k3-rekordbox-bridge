@@ -78,6 +78,17 @@ class MidiRouter:
             if s.get("type") == "note"
         }
 
+        # --- EQ kill: estado de cada banda "matada" por deck: {(eq_func, deck): True} ---
+        self.killed: dict = {}
+        self.led_sender = None    # main.py lo setea: prende/apaga LEDs del K3 (thread-safe)
+        # (eq_func, deck) -> nota del botón de kill en el K3, para apagar su LED al destapar.
+        self.kill_led_note: dict = {}
+        for kfunc, ktarget in self.target_map.items():
+            if isinstance(ktarget, dict) and "kill" in ktarget:
+                notes = (self.input_controls.get(kfunc) or {}).get("note") or []
+                for deck, note in enumerate(notes):
+                    self.kill_led_note[(ktarget["kill"], deck)] = note
+
         # --- Posiciones de controles absolutos (faders/EQ) para restaurar al reiniciar ---
         # Sembramos defaults seguros; main.py después superpone lo guardado en disco.
         self.positions: dict = {}
@@ -115,6 +126,22 @@ class MidiRouter:
         if not target:
             return []
 
+        # EQ kill: toggle de la banda -> a 0 (matar) / restaurar a la posición del knob.
+        # Reusa `positions` (lo que recordamos del knob físico). Solo en el press.
+        if "kill" in target:
+            if msg.type == "note_on" and msg.velocity > 0:
+                eq_func = target["kill"]
+                eq_target = self.target_map.get(eq_func)
+                if not eq_target:
+                    return []
+                k = (eq_func, deck_idx)
+                self.killed[k] = not self.killed.get(k, False)
+                if self.led_sender:   # LED del botón: prendido = banda matada
+                    self.led_sender(msg.note, self.killed[k])
+                value = 0 if self.killed[k] else self.positions.get(k, 64)
+                return self._cc_messages(eq_target, self._channel(eq_target, deck_idx), value)
+            return []
+
         channel = self._channel(target, deck_idx)
 
         # 1) Encoder relativo -> pulso (loop half/double) o CC con valor (browse), por dirección.
@@ -128,6 +155,10 @@ class MidiRouter:
         # 2) CC absoluto (EQ, fader). Guardamos la posición para restaurarla al reiniciar.
         if target["type"] == "cc":
             self.positions[(func, deck_idx)] = value
+            if self.killed.pop((func, deck_idx), None):   # estaba killed -> destapo + apago LED
+                note = self.kill_led_note.get((func, deck_idx))
+                if note is not None and self.led_sender:
+                    self.led_sender(note, False)
             return self._cc_messages(target, channel, value)
 
         # 3) Note (play/cue/sync/loop-on/headphone-cue/load). `notes` = una nota por deck.

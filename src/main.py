@@ -33,6 +33,10 @@ from positions import load_positions, save_positions
 
 STATE_FILE = ROOT / "state" / "positions.json"
 
+# Lock para escribir en la salida del K3 desde 2 lados sin pisarse: el hilo de feedback
+# (LEDs de RB) y el hilo principal (LEDs de EQ kill).
+_led_lock = threading.Lock()
+
 
 def pick(ports: list[str], preferred: str | None, needles: tuple[str, ...]) -> str | None:
     if preferred:
@@ -83,7 +87,8 @@ def feedback_loop(vport: VirtualMidiPort, router: MidiRouter, k3_out) -> None:
             # (1) LEDs: RB -> K3
             for led in router.translate_feedback(rb_msg):
                 if k3_out is not None:
-                    k3_out.send(led)
+                    with _led_lock:
+                        k3_out.send(led)
             # (2) Startup enable: forzar Master Tempo / Quantize a ON (una vez, si están OFF)
             toggle, log = router.feedback_enforce(rb_msg, enforced)
             for m in toggle:
@@ -127,6 +132,12 @@ def main() -> None:
                 k3_out = mido.open_output(out_name)
                 clear_leds(k3_out, router.k3_channel)
                 print(f"LEDs (K3 out):      {out_name}")
+
+                # LED sender para EQ kill (prende/apaga el botón; thread-safe con el lock).
+                def _led_sender(note, on, _out=k3_out, _ch=router.k3_channel):
+                    with _led_lock:
+                        _out.send(mido.Message("note_on", channel=_ch, note=note, velocity=127 if on else 0))
+                router.led_sender = _led_sender
             else:
                 print("LEDs:               (no encontré la salida del K3; sin LEDs)")
         threading.Thread(target=feedback_loop, args=(vport, router, k3_out), daemon=True).start()
