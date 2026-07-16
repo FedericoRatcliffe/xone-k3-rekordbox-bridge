@@ -74,6 +74,11 @@ teVirtualMIDI the feedback comes to us instead — no loop.
 
 - ✅ Full deck control on 4 decks: Play/Pause, Cue, Sync, EQ (hi/mid/low), volume faders,
   loops (auto‑loop on/off + size half/double).
+- ✅ **Library browsing**: browse with the scroll encoder, enter/exit folders, and **load to
+  any deck** (SHIFT + that deck's encoder push).
+- ✅ **Headphone cue** per deck (grid row 1), with LED.
+- ✅ **SHIFT layer**: hold the K3's SHIFT button for alternate functions — the bridge tracks
+  SHIFT as internal state (the K3 doesn't change its codes under SHIFT).
 - ✅ **Bidirectional LED feedback**: the K3's buttons light up following Rekordbox's real
   state, in the colours you configured in the Xone Controller Editor.
 - ✅ **Plug‑and‑play startup**: forces Master Tempo + Quantize ON across all decks when
@@ -125,6 +130,10 @@ teVirtualMIDI the feedback comes to us instead — no loop.
    | Play/Pause | Note 24 | Note 25 | Note 26 | Note 27 | Trigger |
    | Cue | Note 28 | Note 29 | Note 30 | Note 31 | Gate |
    | Sync | Note 32 | Note 33 | Note 34 | Note 35 | Trigger |
+   | Headphone cue (grid row 1) | Note 36 | Note 37 | Note 38 | Note 39 | Trigger |
+
+   Global controls (not per‑deck): **Scroll turn** → CC 21 (relative, browse) · **Scroll push**
+   → Note 14 (folder forward/back) · **SHIFT** button → Note 15.
 
 5. In **Rekordbox → Preferences → Audio**, make sure the audio device is **your real
    interface**, *not* the DDJ-SX2 (the emulated device is not a real sound card).
@@ -245,6 +254,11 @@ fantasma. Con teVirtualMIDI el feedback nos llega a nosotros — sin loop.
 
 - ✅ Control completo de deck en 4 decks: Play/Pause, Cue, Sync, EQ (hi/mid/low), faders de
   volumen, loops (auto‑loop on/off + tamaño half/double).
+- ✅ **Navegación de biblioteca**: browse con el encoder SCROLL, entrar/salir de carpetas, y
+  **cargar a cualquier deck** (SHIFT + el push del encoder de ese deck).
+- ✅ **Headphone cue** por deck (grilla fila 1), con LED.
+- ✅ **Capa SHIFT**: mantené el botón SHIFT del K3 para funciones alternativas — el bridge
+  lleva el SHIFT como estado interno (el K3 no cambia sus códigos con SHIFT).
 - ✅ **Feedback de LEDs bidireccional**: los botones del K3 se prenden siguiendo el estado
   real de Rekordbox, en los colores que configuraste en el Xone Controller Editor.
 - ✅ **Arranque plug‑and‑play**: fuerza Master Tempo + Quantize a ON en los 4 decks cuando
@@ -298,6 +312,10 @@ fantasma. Con teVirtualMIDI el feedback nos llega a nosotros — sin loop.
    | Play/Pause | Note 24 | Note 25 | Note 26 | Note 27 | Trigger |
    | Cue | Note 28 | Note 29 | Note 30 | Note 31 | Gate |
    | Sync | Note 32 | Note 33 | Note 34 | Note 35 | Trigger |
+   | Headphone cue (grilla fila 1) | Note 36 | Note 37 | Note 38 | Note 39 | Trigger |
+
+   Controles globales (no por deck): **Scroll turn** → CC 21 (relativo, browse) · **Scroll
+   push** → Note 14 (carpeta adelante/atrás) · botón **SHIFT** → Note 15.
 
 5. En **Rekordbox → Preferencias → Audio**, asegurate de que el dispositivo de audio sea **tu
    interfaz real**, *no* el DDJ-SX2 (el dispositivo emulado no es una placa de sonido real).

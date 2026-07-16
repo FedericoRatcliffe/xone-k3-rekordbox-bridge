@@ -63,6 +63,12 @@ class MidiRouter:
         # canal MIDI -> índice de deck (para saber qué columna del K3 prender).
         self.channel_to_deck = {ch: i for i, ch in enumerate(self.deck_to_channel)}
 
+        # --- SHIFT: estado interno (el K3 no cambia de código con SHIFT, lo llevamos acá) ---
+        self.shift_note = int(input_cfg.get("device", {}).get("shift_note", 15))
+        self.shift_pressed = False
+        # Con SHIFT apretado, estos controles hacen otra cosa (funcion -> target alternativo).
+        self.shift_map = target_cfg.get("shift_map") or {}
+
         # --- Estados a forzar ON al arrancar (Master Tempo, Quantize) ---
         self.startup_enable = target_cfg.get("startup_enable") or {}
         # (tipo, numero) -> (funcion, scope)
@@ -90,43 +96,69 @@ class MidiRouter:
 
     def translate(self, msg) -> list:
         """Devuelve la lista de mensajes mido a mandar al DDJ-SX2 (puede ser 0, 1 o 2)."""
+        # SHIFT: estado interno. Interceptamos su nota y NO la reenviamos a RB.
+        if msg.type in ("note_on", "note_off") and msg.note == self.shift_note:
+            self.shift_pressed = msg.type == "note_on" and msg.velocity > 0
+            return []
+
         key, value = self._key(msg)
         if key is None or key not in self.lookup:
             return []
         func, deck_idx, kind = self.lookup[key]
-        target = self.target_map.get(func)
+
+        # Con SHIFT apretado, algunos controles usan un target alternativo (shift_map).
+        if self.shift_pressed and func in self.shift_map:
+            target = self.shift_map[func]
+            kind = target.get("kind", kind)
+        else:
+            target = self.target_map.get(func)
         if not target:
             return []
-        channel = self.deck_to_channel[deck_idx] if deck_idx < len(self.deck_to_channel) else 0
 
-        # 1) Encoder relativo -> un "toque" de half/double según la dirección del giro.
+        channel = self._channel(target, deck_idx)
+
+        # 1) Encoder relativo -> pulso (loop half/double) o CC con valor (browse), por dirección.
         if target.get("relative"):
             direction = relative_direction(value)
             if direction == 0:
                 return []
             side = target["cw"] if direction > 0 else target["ccw"]
-            return self._pulse(side["number"], channel)
+            return self._side_messages(side, channel)
 
         # 2) CC absoluto (EQ, fader). Guardamos la posición para restaurarla al reiniciar.
         if target["type"] == "cc":
             self.positions[(func, deck_idx)] = value
             return self._cc_messages(target, channel, value)
 
-        # 3) Note (play / cue / sync / loop-on).
+        # 3) Note (play/cue/sync/loop-on/headphone-cue/load). `notes` = una nota por deck.
         if target["type"] == "note":
+            number = target["notes"][deck_idx] if "notes" in target else target["number"]
             is_press = msg.type == "note_on" and msg.velocity > 0
             if kind == "gate":
                 # "Gate" (Cue): press-and-hold -> on al apretar, off al soltar.
                 if is_press:
-                    return [mido.Message("note_on", channel=channel, note=target["number"], velocity=127)]
-                return [mido.Message("note_off", channel=channel, note=target["number"], velocity=0)]
-            # "Trigger" (Play/Sync/Loop-on): un toque limpio (on+off) en el press.
-            # El K3 manda solo el press; emulamos el click completo de un botón real.
+                    return [mido.Message("note_on", channel=channel, note=number, velocity=127)]
+                return [mido.Message("note_off", channel=channel, note=number, velocity=0)]
+            # "Trigger": un toque limpio (on+off) en el press; ignora el release.
             if is_press:
-                return self._pulse(target["number"], channel)
+                return self._pulse(number, channel)
             return []
 
         return []
+
+    def _channel(self, target: dict, deck: int) -> int:
+        """Canal del target: explícito si lo trae (browse/load son globales), si no el del deck."""
+        if "channel" in target:
+            return target["channel"]
+        return self.deck_to_channel[deck] if deck < len(self.deck_to_channel) else 0
+
+    @staticmethod
+    def _side_messages(side: dict, channel: int) -> list:
+        """Un lado de un encoder relativo -> pulso de nota (loop) o CC con valor (browse)."""
+        if side["type"] == "note":
+            return MidiRouter._pulse(side["number"], channel)
+        return [mido.Message("control_change", channel=channel,
+                             control=side["number"], value=side.get("value", 0))]
 
     def translate_feedback(self, msg) -> list:
         """Feedback de RB (DDJ-SX2) -> mensajes de LED para el K3.

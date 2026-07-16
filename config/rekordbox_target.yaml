@@ -39,6 +39,35 @@ map:
     ccw: { type: note, number: 18 }   # 0x12  LoopHalf   (achicar loop)
     cw:  { type: note, number: 19 }   # 0x13  LoopDouble (agrandar loop)
 
+  # Headphone Cue por deck (canal = deck). Tiene feedback -> el LED del K3 se prende solo.
+  headphone_cue: { type: note, number: 84 }   # 0x54  Headphone CUE On/Off
+
+  # Browse (navegación de biblioteca). Control GLOBAL en el canal 7 (mido 6) del "browser".
+  # El scroll relativo del K3 dispara un paso a cada lado (Rotary del DDJ: 1 = un lado, 127 = otro).
+  browse:
+    relative: true
+    channel: 6                              # canal 7 en 1-based; sección browser
+    cw:  { type: cc, number: 64, value: 1 }    # 0x40  Browse rotary
+    ccw: { type: cc, number: 64, value: 127 }
+
+  # SCROLL push -> Forward (abrir/entrar carpeta). Canal 7 (mido 6) del browser.
+  scroll_push: { type: note, number: 65, channel: 6 }   # 0x41  Library Forward (Folder Open)
+
+# Con SHIFT apretado (note 15 del K3), estos controles usan un target alternativo.
+# SHIFT + Encoder PUSH (col X) = Load Track a Deck X. En el DDJ-SX2 el Load va en el canal 7
+# (mido 6) y el DECK lo define la NOTA (no el canal): 70/71/72/73 = deck 1/2/3/4.
+shift_map:
+  encoder_push:
+    type: note
+    kind: trigger
+    channel: 6
+    notes: [70, 71, 72, 73]   # 0x46-0x49  Load a Deck 1-4
+  scroll_push:                 # SHIFT + SCROLL push = Back (subir / cerrar carpeta)
+    type: note
+    kind: trigger
+    channel: 6
+    number: 101               # 0x65  Library Back (Folder Close)
+
 # Estados que el puente FUERZA a ON al arrancar, para que sea plug-and-play en cualquier PC.
 # El puente lee el estado real por feedback y solo prende si está en OFF (sin doble-toggle).
 # Lo hace UNA vez al inicio; si después los apagás a mano, no los vuelve a tocar.

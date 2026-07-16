@@ -7,6 +7,7 @@
 device:
   name: "Xone K3"
   midi_channel: 15        # 1-based (como lo muestra el editor). En mido/0-based = 14.
+  shift_note: 15          # el botón SHIFT manda Note 15 (on al apretar, off al soltar)
 
 # Cada control lista los números por columna (deck 1, 2, 3, 4).
 controls:
@@ -70,6 +71,27 @@ controls:
     kind: trigger
     note: [32, 33, 34, 35]
 
-# Grilla inferior 4x4 (16 botones): Play/Cue/Sync ya usan algunos.
-# El resto queda libre para Hot Cues u otras funciones — los mapeamos cuando
-# los veamos en el monitor y decidamos qué función darles.
+  # Grilla inferior, fila 1 (columnas 1-4) -> Headphone Cue por deck.
+  headphone_cue:
+    label: "Headphone Cue (grilla fila 1)"
+    type: note
+    kind: trigger
+    note: [36, 37, 38, 39]
+
+  # Encoder SCROLL (giro) -> Browse. Es un control GLOBAL (uno solo, no por deck).
+  browse:
+    label: "Browse (scroll turn)"
+    type: cc
+    kind: relative
+    cc: [21]
+
+  # Encoder SCROLL (push) -> Forward (entrar a carpeta). Con SHIFT -> Back (al árbol izq.).
+  scroll_push:
+    label: "Scroll push (browser Forward/Back)"
+    type: note
+    kind: trigger
+    note: [14]
+
+# SHIFT + Encoder PUSH (col X) = Load Track a Deck X. La nota del push (52-55) no cambia con
+# SHIFT; el bridge lleva el estado shift_pressed y usa shift_map (ver rekordbox_target.yaml).
+# Resto de la grilla inferior: libre para Hot Cues u otras funciones.
