@@ -18,19 +18,44 @@ Un control "por deck" (deck1..deck4 = 0,1,2,3) usa el mismo número en canales 1
 | 3    | `92`    | `B2` |
 | 4    | `93`    | `B3` |
 
-## Tu mapeo K3 → DDJ-SX2 (lo que emulamos)
+## Mapeo completo K3 → DDJ-SX2 (lo que emulamos)
 
-| Función K3            | K3 manda           | DDJ-SX2 emula (deck = canal) | Código SX2      |
-|-----------------------|--------------------|------------------------------|-----------------|
-| Play/Pause            | Note 24-27         | PlayPause                    | Note `0x0B` (11)|
-| Cue                   | Note 28-31         | Cue                          | Note `0x0C` (12)|
-| Sync                  | Note 32-35         | Sync                         | Note `0x58` (88)|
-| EQ High               | CC 4-7             | EQHigh                       | CC `0x07` (7)   |
-| EQ Mid                | CC 8-11            | EQMid                        | CC `0x0B` (11)  |
-| EQ Low                | CC 12-15           | EQLow                        | CC `0x0F` (15)  |
-| Fader (Volumen)       | CC 16-19           | ChannelFader                 | CC `0x13` (19)  |
-| Encoder PUSH (Loop On)| Note 52-55         | AutoLoop On/Off              | Note `0x14` (20)|
-| Encoder TURN (Loop Sz)| CC 0-3 (relativo)  | LoopHalf / LoopDouble        | Note `0x12`/`0x13` |
+### Capa normal (deck = canal MIDI; los de browser van en canal 7 / mido 6)
+
+| Función K3              | K3 manda           | DDJ-SX2 emula          | Código SX2                |
+|-------------------------|--------------------|------------------------|---------------------------|
+| Play/Pause              | Note 24-27         | PlayPause              | Note `0x0B` (11)          |
+| Cue                     | Note 28-31         | Cue                    | Note `0x0C` (12)          |
+| Sync                    | Note 32-35         | Sync                   | Note `0x58` (88)          |
+| EQ High                 | CC 4-7             | EQHigh                 | CC `0x07` (7)             |
+| EQ Mid                  | CC 8-11            | EQMid                  | CC `0x0B` (11)            |
+| EQ Low                  | CC 12-15           | EQLow                  | CC `0x0F` (15)            |
+| Fader (Volumen)         | CC 16-19           | ChannelFader (HiRes)   | CC `0x13` (19)            |
+| Encoder PUSH (Loop On)  | Note 52-55         | AutoLoop On/Off        | Note `0x14` (20)          |
+| Encoder TURN (Loop Sz)  | CC 0-3 (relativo)  | LoopHalf / LoopDouble  | Note `0x12`/`0x13`        |
+| Headphone Cue (fila 1)  | Note 36-39         | HeadphoneCue           | Note `0x54` (84)          |
+| Browse (Scroll turn)    | CC 21 (relativo)   | Browse (Rotary)        | CC `0x40` (64), canal 7   |
+| Scroll PUSH             | Note 14            | Forward (entrar carpeta)| Note `0x41` (65), canal 7 |
+
+### Capa SHIFT (mantené el botón SHIFT = Note 15)
+
+El K3 **no cambia sus códigos** con SHIFT: el bridge lleva `shift_pressed` como estado interno
+(la Note 15 se intercepta y NO se reenvía a RB) y aplica el `shift_map`.
+
+| Combo                        | DDJ-SX2 emula                | Código SX2                          |
+|------------------------------|------------------------------|-------------------------------------|
+| SHIFT + Encoder PUSH (col X) | Load Track a Deck X          | Note `0x46`-`0x49` (70-73), canal 7 |
+| SHIFT + Scroll PUSH          | Back (cerrar/subir carpeta)  | Note `0x65` (101), canal 7          |
+
+> Los controles de **browser** (Browse, Forward, Back, Load) van en el **canal 7** (1-based;
+> mido 0-based = 6), la sección "browser" del DDJ. En **Load**, el DECK lo define la NOTA
+> (70-73), no el canal (a diferencia del resto, donde el deck = canal).
+
+### Expandir la vista de biblioteca — NO es viable desde el K3
+La función "BROWSE VIEW" (expandir/contraer la biblioteca) existe solo en DDJ-1000/400/800,
+que Rekordbox detecta por **USB** (no por nombre de puerto MIDI, así que no se pueden emular);
+el DDJ-SX2 no la tiene; y RB **ignora las teclas inyectadas** por software. Se hace con la
+**barra espaciadora física** del teclado.
 
 ## FX en Rekordbox — hasta dónde llega el MIDI (importante)
 
