@@ -74,8 +74,9 @@ teVirtualMIDI the feedback comes to us instead — no loop.
 
 - ✅ Full deck control on 4 decks: Play/Pause, Cue, Sync, EQ (hi/mid/low), volume faders,
   loops (auto‑loop on/off + size half/double).
-- ✅ **Library browsing**: browse with the scroll encoder, enter/exit folders, and **load to
-  any deck** (SHIFT + that deck's encoder push).
+- ✅ **Library browsing & preview**: browse with the scroll encoder, enter/exit folders, **load
+  to any deck** (SHIFT + that deck's encoder push), and **scrub/seek** the cued track for
+  previewing (SHIFT + that deck's encoder turn).
 - ✅ **Headphone cue** per deck (grid row 1), with LED.
 - ✅ **SHIFT layer**: hold the K3's SHIFT button for alternate functions — the bridge tracks
   SHIFT as internal state (the K3 doesn't change its codes under SHIFT).
@@ -254,8 +255,9 @@ fantasma. Con teVirtualMIDI el feedback nos llega a nosotros — sin loop.
 
 - ✅ Control completo de deck en 4 decks: Play/Pause, Cue, Sync, EQ (hi/mid/low), faders de
   volumen, loops (auto‑loop on/off + tamaño half/double).
-- ✅ **Navegación de biblioteca**: browse con el encoder SCROLL, entrar/salir de carpetas, y
-  **cargar a cualquier deck** (SHIFT + el push del encoder de ese deck).
+- ✅ **Navegación y pre-escucha**: browse con el encoder SCROLL, entrar/salir de carpetas,
+  **cargar a cualquier deck** (SHIFT + el push del encoder de ese deck), y **scrubbear/buscar**
+  dentro del tema cueado para pre-escucharlo (SHIFT + el turn del encoder de ese deck).
 - ✅ **Headphone cue** por deck (grilla fila 1), con LED.
 - ✅ **Capa SHIFT**: mantené el botón SHIFT del K3 para funciones alternativas — el bridge
   lleva el SHIFT como estado interno (el K3 no cambia sus códigos con SHIFT).

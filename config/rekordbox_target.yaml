@@ -57,6 +57,15 @@ map:
 # SHIFT + Encoder PUSH (col X) = Load Track a Deck X. En el DDJ-SX2 el Load va en el canal 7
 # (mido 6) y el DECK lo define la NOTA (no el canal): 70/71/72/73 = deck 1/2/3/4.
 shift_map:
+  # SHIFT + Encoder TURN (col X) = JogSearch (scrubbear/buscar dentro del tema) en el Deck X.
+  # Por deck (sin channel explícito -> usa el canal del deck). JogSearch es "Difference"
+  # (relativo): value = delta con signo (1..63 = adelante, 65..127 = atrás en two's complement).
+  # 'value' regula la VELOCIDAD del scrub: subilo para ir más rápido, bajalo para más fino.
+  encoder_turn:
+    relative: true
+    cw:  { type: cc, number: 31, value: 120 }   # 0x1F  JogSearch ADELANTE (derecha) — JogSearch invierte el signo
+    ccw: { type: cc, number: 31, value: 8 }     # 0x1F  JogSearch ATRÁS (izquierda)
+
   encoder_push:
     type: note
     kind: trigger

@@ -42,10 +42,15 @@ Un control "por deck" (deck1..deck4 = 0,1,2,3) usa el mismo número en canales 1
 El K3 **no cambia sus códigos** con SHIFT: el bridge lleva `shift_pressed` como estado interno
 (la Note 15 se intercepta y NO se reenvía a RB) y aplica el `shift_map`.
 
-| Combo                        | DDJ-SX2 emula                | Código SX2                          |
-|------------------------------|------------------------------|-------------------------------------|
-| SHIFT + Encoder PUSH (col X) | Load Track a Deck X          | Note `0x46`-`0x49` (70-73), canal 7 |
-| SHIFT + Scroll PUSH          | Back (cerrar/subir carpeta)  | Note `0x65` (101), canal 7          |
+| Combo                        | DDJ-SX2 emula                    | Código SX2                          |
+|------------------------------|---------------------------------|-------------------------------------|
+| SHIFT + Encoder TURN (col X) | JogSearch (scrub en el tema) Deck X | CC `0x1F` (31), canal del deck  |
+| SHIFT + Encoder PUSH (col X) | Load Track a Deck X             | Note `0x46`-`0x49` (70-73), canal 7 |
+| SHIFT + Scroll PUSH          | Back (cerrar/subir carpeta)     | Note `0x65` (101), canal 7          |
+
+> **JogSearch** es tipo "Difference" (relativo) e invierte el signo respecto al two's complement
+> estándar: por eso `value 120` = adelante y `value 8` = atrás. El `value` regula la velocidad
+> del scrub (más alto = más rápido).
 
 > Los controles de **browser** (Browse, Forward, Back, Load) van en el **canal 7** (1-based;
 > mido 0-based = 6), la sección "browser" del DDJ. En **Load**, el DECK lo define la NOTA
