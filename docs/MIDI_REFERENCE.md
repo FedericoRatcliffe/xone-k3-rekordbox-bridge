@@ -70,6 +70,50 @@ que Rekordbox detecta por **USB** (no por nombre de puerto MIDI, así que no se 
 el DDJ-SX2 no la tiene; y RB **ignora las teclas inyectadas** por software. Se hace con la
 **barra espaciadora física** del teclado.
 
+## Layer 2 (FX) — el mapeo implementado
+
+El K3 con **Latching Layers = "All Controls"** manda códigos distintos en Layer 2 (mismos
+controles físicos, no hay estado de layer en el bridge: se mapea por los códigos nuevos).
+Esquema "Opción B": knobs de arriba = filtro por canal; encoders col 1/2 = las 2 unidades de
+Beat FX; 2ª perilla = depth; 1º botón = on/off.
+
+### Sound Color FX (filtro por canal) — knobs de arriba
+
+| K3 (Layer 2) | Manda | DDJ-SX2 emula | Código SX2 (canal 7 / mido 6) |
+|---|---|---|---|
+| Knob arriba col 1 | CC 26 | CFX canal 1 | CC `0x17` (23), HiRes |
+| Knob arriba col 2 | CC 27 | CFX canal 2 | CC `0x18` (24), HiRes |
+| Knob arriba col 3 | CC 28 | CFX canal 3 | CC `0x19` (25), HiRes |
+| Knob arriba col 4 | CC 29 | CFX canal 4 | CC `0x1A` (26), HiRes |
+
+> Centro (64) = filtro apagado. El **tipo** (Filter / Noise / Echo / Pitch) se elige en RB (fila
+> CFX); si no hay tipo seleccionado, los knobs no hacen nada.
+
+### Beat FX — col 1 = FX1 (canal 5), col 2 = FX2 (canal 6)
+
+| Función | K3 col 1 | K3 col 2 | DDJ-SX2 emula | Código FX1 / FX2 |
+|---|---|---|---|---|
+| Select (cicla efecto) | Note 88 | Note 89 | FXx-1 Select | Note `0x63` (99), ch 5 / ch 6 |
+| Beat/time (relativo) | CC 22 | CC 23 | FXx Beat up/down | CC `0x00` (0), ch 5 / ch 6 |
+| Depth (cantidad) | CC 30 | CC 31 | FXx-1 Depth (HiRes) | CC `0x02` (2), ch 5 / ch 6 |
+| On/Off (con LED) | Note 84 | Note 85 | FXx-1 On/Off | Note `0x47` (71), ch 5 / ch 6 |
+
+### SHIFT en Layer 2 = channel-assign
+
+El botón **SHIFT manda Note 19 en Layer 2** (vs Note 15 en Layer 1; patrón +4 igual que el
+botón LAYER). Con SHIFT + encoder turn (col 1/2), el bridge cicla el canal asignado de esa
+unidad de Beat FX:
+
+| Combo | Efecto | Código SX2 (canal 7 / mido 6) |
+|---|---|---|
+| SHIFT + encoder turn col 1 | FX1: canal 1→2→3→4→1 | Notes `0x4C`-`0x4F` (76-79) |
+| SHIFT + encoder turn col 2 | FX2: canal 1→2→3→4→1 | Notes `0x50`-`0x53` (80-83) |
+
+> El assign del SX2 es **toggle** (cada nota prende/apaga ese canal), no "radio". Para que se
+> comporte como "mover", el bridge **apaga el canal anterior y prende el nuevo** en cada paso, y
+> lleva el índice actual (arranca FX1→CH1, FX2→CH2, y se re-sincroniza con el feedback de RB si
+> lo cambiás con el mouse). **El Master no se puede** por MIDI con el SX2 (solo expone CH1-4).
+
 ## FX en Rekordbox — hasta dónde llega el MIDI (importante)
 
 Investigando los CSV oficiales, así modela Rekordbox 5 los efectos por MIDI:

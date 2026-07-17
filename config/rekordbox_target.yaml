@@ -37,6 +37,28 @@ map:
   eq_high_kill: { kill: eq_high }
   eq_mid_kill:  { kill: eq_mid }
   eq_low_kill:  { kill: eq_low }
+
+  # --- Layer 2 (FX) — Esquema Opción B (códigos reales del CSV oficial del SX2) ---
+  #
+  # Sound Color FX (filtro por canal): un CC por canal, TODOS en canal 6 (mido). HiRes.
+  # CFXParameterCH1..CH4 = B617..B61A -> CC 23/24/25/26. col1->CH1 ... col4->CH4.
+  # Centro (64) = filtro apagado. Es el efecto "más usado" en progressive (filtro por canal).
+  cfx:
+    type: cc
+    channel: 6
+    numbers: [23, 24, 25, 26]   # CFXParameterCH1..CH4
+    hires: true
+
+  # Beat FX: col1 = FX1 (canal 4), col2 = FX2 (canal 5). Mismos códigos, distinto canal.
+  # FX1: Select 9463 / On 9447 / Depth B402 / Beat B400.  FX2: 9563 / 9547 / B502 / B500.
+  fx_select: { type: note, number: 99, channels: [4, 5] }              # 0x63  FXx-1 Select (cicla efecto)
+  fx_onoff:  { type: note, number: 71, channels: [4, 5] }              # 0x47  FXx-1 On/Off
+  fx_depth:  { type: cc,   number: 2,  channels: [4, 5], hires: true } # 0x02  FXx-1 Depth (cantidad)
+  fx_beat:                                                             # 0x00  FXx Beat up/down (Rotary)
+    relative: true
+    channels: [4, 5]
+    cw:  { type: cc, number: 0, value: 1 }     # beat "up" (efecto más largo)
+    ccw: { type: cc, number: 0, value: 127 }   # beat "down" (más corto)
   encoder_push: { type: note, number: 20 }    # 0x14  AutoLoop On/Off  (tu "Loop On/Off")
 
   # El encoder TURN del K3 es RELATIVO. Un giro a cada lado dispara half/double:
@@ -82,6 +104,17 @@ shift_map:
     kind: trigger
     channel: 6
     number: 101               # 0x65  Library Back (Folder Close)
+
+  # SHIFT + Encoder TURN (Layer 2, col 1/2) = ciclar el canal asignado del Beat FX:
+  # CH1 -> 2 -> 3 -> 4 -> CH1. El SX2 solo expone CH1-4 por MIDI (Master es GUI-only).
+  # `cycle` = notas de assign de cada unidad (FX1, FX2), en canal 7 (mido 6). El bridge lleva
+  # el índice actual (arranca FX1->CH1, FX2->CH2 como RB) y lo corrige con el feedback de RB.
+  # FX1Assign1-4 = 964C-964F (76-79); FX2Assign1-4 = 9650-9653 (80-83).
+  fx_beat:
+    channel: 6
+    cycle:
+      - [76, 77, 78, 79]   # FX1 -> CH1/2/3/4
+      - [80, 81, 82, 83]   # FX2 -> CH1/2/3/4
 
 # Estados que el puente FUERZA a ON al arrancar, para que sea plug-and-play en cualquier PC.
 # El puente lee el estado real por feedback y solo prende si está en OFF (sin doble-toggle).

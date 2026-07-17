@@ -9,7 +9,7 @@
     <AppSelectedMap>0</AppSelectedMap>
     <AppSelectedLayer>0</AppSelectedLayer>
     <AppSelectedControlCat>1</AppSelectedControlCat>
-    <AppSelectedSwitchNumber>22</AppSelectedSwitchNumber>
+    <AppSelectedSwitchNumber>3</AppSelectedSwitchNumber>
     <AppSelectedAnalogueNumber>999</AppSelectedAnalogueNumber>
     <AppSelectedEncoderNumber>999</AppSelectedEncoderNumber>
     <SurfaceMap>
@@ -784,7 +784,7 @@
                     <MIDINumber>0</MIDINumber>
                 </Control>
                 <LEDIndex>0</LEDIndex>
-                <LEDColor>1</LEDColor>
+                <LEDColor>2</LEDColor>
                 <LEDMode>0</LEDMode>
             </LED>
             <LED>
@@ -794,7 +794,7 @@
                     <MIDINumber>0</MIDINumber>
                 </Control>
                 <LEDIndex>1</LEDIndex>
-                <LEDColor>1</LEDColor>
+                <LEDColor>2</LEDColor>
                 <LEDMode>0</LEDMode>
             </LED>
             <LED>
@@ -804,7 +804,7 @@
                     <MIDINumber>0</MIDINumber>
                 </Control>
                 <LEDIndex>2</LEDIndex>
-                <LEDColor>1</LEDColor>
+                <LEDColor>2</LEDColor>
                 <LEDMode>0</LEDMode>
             </LED>
             <LED>
@@ -814,7 +814,7 @@
                     <MIDINumber>0</MIDINumber>
                 </Control>
                 <LEDIndex>3</LEDIndex>
-                <LEDColor>1</LEDColor>
+                <LEDColor>2</LEDColor>
                 <LEDMode>0</LEDMode>
             </LED>
             <LED>
@@ -824,7 +824,7 @@
                     <MIDINumber>0</MIDINumber>
                 </Control>
                 <LEDIndex>4</LEDIndex>
-                <LEDColor>1</LEDColor>
+                <LEDColor>3</LEDColor>
                 <LEDMode>0</LEDMode>
             </LED>
             <LED>
@@ -834,7 +834,7 @@
                     <MIDINumber>0</MIDINumber>
                 </Control>
                 <LEDIndex>5</LEDIndex>
-                <LEDColor>1</LEDColor>
+                <LEDColor>3</LEDColor>
                 <LEDMode>0</LEDMode>
             </LED>
             <LED>
@@ -844,7 +844,7 @@
                     <MIDINumber>0</MIDINumber>
                 </Control>
                 <LEDIndex>6</LEDIndex>
-                <LEDColor>1</LEDColor>
+                <LEDColor>3</LEDColor>
                 <LEDMode>0</LEDMode>
             </LED>
             <LED>
@@ -854,7 +854,7 @@
                     <MIDINumber>0</MIDINumber>
                 </Control>
                 <LEDIndex>7</LEDIndex>
-                <LEDColor>1</LEDColor>
+                <LEDColor>3</LEDColor>
                 <LEDMode>0</LEDMode>
             </LED>
             <LED>

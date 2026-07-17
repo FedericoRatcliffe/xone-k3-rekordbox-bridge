@@ -63,11 +63,27 @@ class MidiRouter:
         # canal MIDI -> índice de deck (para saber qué columna del K3 prender).
         self.channel_to_deck = {ch: i for i, ch in enumerate(self.deck_to_channel)}
 
-        # --- SHIFT: estado interno (el K3 no cambia de código con SHIFT, lo llevamos acá) ---
-        self.shift_note = int(input_cfg.get("device", {}).get("shift_note", 15))
+        # --- SHIFT: estado interno (el K3 no cambia los códigos de los DEMÁS controles con
+        # SHIFT, lo llevamos acá). OJO: el botón SHIFT en sí manda OTRA nota según la layer
+        # activa (Latching Layers): 15 en Layer 1, 19 en Layer 2. Todas cuentan como SHIFT.
+        shift_cfg = input_cfg.get("device", {}).get("shift_note", 15)
+        self.shift_notes = {int(n) for n in shift_cfg} if isinstance(shift_cfg, list) else {int(shift_cfg)}
         self.shift_pressed = False
         # Con SHIFT apretado, estos controles hacen otra cosa (funcion -> target alternativo).
         self.shift_map = target_cfg.get("shift_map") or {}
+
+        # --- FX channel-assign (SHIFT + encoder en Layer 2): ciclo de asignación por unidad ---
+        # Config: un target del shift_map con `cycle` = una lista de notas de assign por unidad
+        # (FX1, FX2). El índice arranca como los defaults de RB (FX1->CH1, FX2->CH2) y se
+        # corrige solo con el feedback real de RB (si cambiás el assign con el mouse, se re-sincroniza).
+        self.fx_assign_cycle = []
+        self.fx_assign_channel = None
+        for t in self.shift_map.values():
+            if isinstance(t, dict) and "cycle" in t:
+                self.fx_assign_cycle = t["cycle"]
+                self.fx_assign_channel = t.get("channel", 6)
+        self.fx_assign_idx = {u: min(u, len(notes) - 1)
+                              for u, notes in enumerate(self.fx_assign_cycle)}
 
         # --- Estados a forzar ON al arrancar (Master Tempo, Quantize) ---
         self.startup_enable = target_cfg.get("startup_enable") or {}
@@ -107,8 +123,8 @@ class MidiRouter:
 
     def translate(self, msg) -> list:
         """Devuelve la lista de mensajes mido a mandar al DDJ-SX2 (puede ser 0, 1 o 2)."""
-        # SHIFT: estado interno. Interceptamos su nota y NO la reenviamos a RB.
-        if msg.type in ("note_on", "note_off") and msg.note == self.shift_note:
+        # SHIFT: estado interno. Interceptamos su nota (una por layer) y NO la reenviamos a RB.
+        if msg.type in ("note_on", "note_off") and msg.note in self.shift_notes:
             self.shift_pressed = msg.type == "note_on" and msg.velocity > 0
             return []
 
@@ -139,10 +155,32 @@ class MidiRouter:
                 if self.led_sender:   # LED del botón: prendido = banda matada
                     self.led_sender(msg.note, self.killed[k])
                 value = 0 if self.killed[k] else self.positions.get(k, 64)
-                return self._cc_messages(eq_target, self._channel(eq_target, deck_idx), value)
+                return self._cc_messages(eq_target, self._channel(eq_target, deck_idx), value, deck_idx)
             return []
 
         channel = self._channel(target, deck_idx)
+
+        # 0) SHIFT + encoder (L2): ciclar el canal asignado del Beat FX (CH1->2->3->4->CH1).
+        # `cycle` trae las notas de assign de esa unidad; el índice actual vive en fx_assign_idx
+        # (seedeado con los defaults de RB y sincronizado por feedback en translate_feedback).
+        if "cycle" in target:
+            direction = relative_direction(value)
+            if direction == 0:
+                return []
+            notes = target["cycle"][deck_idx] if deck_idx < len(target["cycle"]) else []
+            if not notes:
+                return []
+            prev = self.fx_assign_idx.get(deck_idx, 0)
+            idx = (prev + direction) % len(notes)
+            self.fx_assign_idx[deck_idx] = idx
+            # El assign del SX2 es TOGGLE (cada nota prende/apaga ese canal), NO "radio". Para
+            # que se comporte como "mover" el canal, apagamos el anterior y prendemos el nuevo;
+            # si solo prendiéramos el nuevo, se irían acumulando todos los canales prendidos.
+            out = []
+            if idx != prev:
+                out += self._pulse(notes[prev], channel)   # apaga el canal anterior
+            out += self._pulse(notes[idx], channel)          # prende el nuevo
+            return out
 
         # 1) Encoder relativo -> pulso (loop half/double) o CC con valor (browse), por dirección.
         if target.get("relative"):
@@ -159,7 +197,7 @@ class MidiRouter:
                 note = self.kill_led_note.get((func, deck_idx))
                 if note is not None and self.led_sender:
                     self.led_sender(note, False)
-            return self._cc_messages(target, channel, value)
+            return self._cc_messages(target, channel, value, deck_idx)
 
         # 3) Note (play/cue/sync/loop-on/headphone-cue/load). `notes` = una nota por deck.
         if target["type"] == "note":
@@ -178,7 +216,11 @@ class MidiRouter:
         return []
 
     def _channel(self, target: dict, deck: int) -> int:
-        """Canal del target: explícito si lo trae (browse/load son globales), si no el del deck."""
+        """Canal del target: por-deck si trae `channels` (p. ej. FX1=ch4, FX2=ch5), explícito
+        si trae `channel` (browse/load/CFX son globales), si no el del deck (Pioneer: deck=canal)."""
+        if "channels" in target:
+            chans = target["channels"]
+            return chans[deck] if deck < len(chans) else chans[0]
         if "channel" in target:
             return target["channel"]
         return self.deck_to_channel[deck] if deck < len(self.deck_to_channel) else 0
@@ -206,13 +248,32 @@ class MidiRouter:
         else:
             return []
 
+        # Tracking del FX channel-assign: RB reporta qué canal tiene cada unidad (velocity>0).
+        # Mantiene el ciclo de SHIFT+encoder sincronizado aunque cambies el assign con el mouse.
+        if key[0] == "note" and ch == self.fx_assign_channel and on > 0:
+            for unit, notes in enumerate(self.fx_assign_cycle):
+                if key[1] in notes:
+                    self.fx_assign_idx[unit] = notes.index(key[1])
+
         func = self.target_reverse.get(key)
-        deck = self.channel_to_deck.get(ch)
-        if func is None or deck is None:
+        if func is None:
             return []
         notes = (self.input_controls.get(func) or {}).get("note")
-        if not notes or deck >= len(notes):
-            return []   # esa función no tiene LED en el K3 (p. ej. EQ/fader son CC)
+        if not notes:
+            return []   # esa función no tiene LED en el K3 (p. ej. EQ/fader/depth son CC)
+        target = self.target_map.get(func) or {}
+        if "channels" in target:
+            # Target por-canal (p. ej. FX1=ch4, FX2=ch5): el índice de columna es la posición
+            # del canal en `channels` -> FX1 (ch4) prende la col 1, FX2 (ch5) la col 2.
+            chans = target["channels"]
+            deck = chans.index(ch) if ch in chans else None
+        else:
+            deck = self.channel_to_deck.get(ch)
+            if deck is None:
+                # Canal que no es un deck: si el control es global (una sola nota), usamos la 0.
+                deck = 0 if len(notes) == 1 else None
+        if deck is None or deck >= len(notes):
+            return []
 
         velocity = 127 if on > 0 else 0
         return [mido.Message("note_on", channel=self.k3_channel, note=notes[deck], velocity=velocity)]
@@ -258,20 +319,25 @@ class MidiRouter:
             target = self.target_map.get(func)
             if not target or target.get("type") != "cc":
                 continue
-            channel = self.deck_to_channel[deck] if deck < len(self.deck_to_channel) else 0
-            out += self._cc_messages(target, channel, value)
+            channel = self._channel(target, deck)
+            out += self._cc_messages(target, channel, value, deck)
         return out
 
     @staticmethod
-    def _cc_messages(target: dict, channel: int, value: int) -> list:
-        """CC absoluto -> mensaje(s). HiRes manda MSB (CC N) + LSB (CC N+32) escalando a 14-bit."""
+    def _cc_messages(target: dict, channel: int, value: int, deck: int = 0) -> list:
+        """CC absoluto -> mensaje(s). HiRes manda MSB (CC N) + LSB (CC N+32) escalando a 14-bit.
+        El número de CC puede ser por-deck (`numbers: [...]`, p. ej. Sound Color FX: un CC por canal)."""
+        number = target.get("number")
+        if "numbers" in target:
+            nums = target["numbers"]
+            number = nums[deck] if deck < len(nums) else nums[0]
         if target.get("hires"):
             v14 = round(value / 127 * 16383)
             return [
-                mido.Message("control_change", channel=channel, control=target["number"], value=(v14 >> 7) & 0x7F),
-                mido.Message("control_change", channel=channel, control=target["number"] + 32, value=v14 & 0x7F),
+                mido.Message("control_change", channel=channel, control=number, value=(v14 >> 7) & 0x7F),
+                mido.Message("control_change", channel=channel, control=number + 32, value=v14 & 0x7F),
             ]
-        return [mido.Message("control_change", channel=channel, control=target["number"], value=value)]
+        return [mido.Message("control_change", channel=channel, control=number, value=value)]
 
     @staticmethod
     def _pulse(note: int, channel: int) -> list:

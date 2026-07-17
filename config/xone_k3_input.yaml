@@ -7,7 +7,9 @@
 device:
   name: "Xone K3"
   midi_channel: 15        # 1-based (como lo muestra el editor). En mido/0-based = 14.
-  shift_note: 15          # el botón SHIFT manda Note 15 (on al apretar, off al soltar)
+  # El botón SHIFT manda OTRA nota según la layer activa (Latching Layers): 15 en Layer 1,
+  # 19 en Layer 2 (patrón +4, igual que el botón LAYER: 12/16/20). Todas cuentan como SHIFT.
+  shift_note: [15, 19]
 
 # Cada control lista los números por columna (deck 1, 2, 3, 4).
 controls:
@@ -94,6 +96,42 @@ controls:
     type: note
     kind: trigger
     note: [40, 41, 42, 43]
+
+  # --- Layer 2 (FX) — códigos que manda el K3 en Layer 2 (Latching Layers = "All Controls").
+  # Solo se mandan en Layer 2, así que no chocan con los de Layer 1.
+  # Esquema (Opción B): perilla de ARRIBA de cada columna = Sound Color FX por canal (filtro);
+  # encoder col 1/2 = Beat FX1/FX2 (select+beat); 2ª perilla col 1/2 = depth; 1º botón col 1/2 = on/off.
+  # Códigos confirmados con monitor.py en Layer 2 (jul/2026).
+
+  # Sound Color FX (perilla de ARRIBA, una por columna) -> filtro/color por canal 1-4.
+  # Absoluto: el centro (64) = filtro apagado; a cada lado el efecto (según tipo elegido en RB).
+  cfx:
+    label: "Sound Color FX (perilla arriba, por canal)"
+    type: cc
+    kind: absolute
+    cc: [26, 27, 28, 29]
+    default: 64
+
+  fx_select:                 # Encoder PUSH (L2) col 1/2 -> cambiar de efecto de FX1/FX2
+    label: "FX Select (L2 encoder push col1/2)"
+    type: note
+    kind: trigger
+    note: [88, 89]
+  fx_beat:                   # Encoder TURN (L2) col 1/2 -> beat/time de FX1/FX2
+    label: "FX Beat/Time (L2 encoder turn col1/2)"
+    type: cc
+    kind: relative
+    cc: [22, 23]
+  fx_depth:                  # 2ª perilla (L2) col 1/2 -> cantidad de efecto de FX1/FX2
+    label: "FX Depth (L2 2nd knob col1/2)"
+    type: cc
+    kind: absolute
+    cc: [30, 31]
+  fx_onoff:                  # 1º botón (L2) col 1/2 -> prende/apaga FX1/FX2
+    label: "FX On/Off (L2 button col1/2)"
+    type: note
+    kind: trigger
+    note: [84, 85]
 
   # Encoder SCROLL (giro) -> Browse. Es un control GLOBAL (uno solo, no por deck).
   browse:

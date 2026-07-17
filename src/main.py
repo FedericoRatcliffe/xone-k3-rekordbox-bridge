@@ -14,6 +14,7 @@ Cerrá loopMIDI. Y arrancá el puente ANTES de abrir Rekordbox (así agarra el K
 Uso:
     python src/main.py --dry-run     # traduce e imprime, sin crear el puerto virtual ni LEDs
     python src/main.py               # forward completo + LEDs
+    python src/main.py --verbose     # además loguea cada mensaje (SOLO debug: agrega latencia)
     python src/main.py --in XONE
     python src/main.py --no-leds     # sin feedback de LEDs
     python src/main.py --list        # lista puertos y sale
@@ -103,7 +104,11 @@ def main() -> None:
     ap.add_argument("--in", dest="in_port", help="Substring del puerto de entrada (K3)")
     ap.add_argument("--no-leds", action="store_true", help="No mandar feedback de LEDs al K3")
     ap.add_argument("--list", action="store_true", help="Lista puertos y sale")
+    ap.add_argument("--verbose", "-v", action="store_true",
+                    help="Loguea cada mensaje traducido (imprimir en consola agrega latencia; solo debug)")
     args = ap.parse_args()
+    # En dry-run el log ES el output, así que ahí siempre imprimimos.
+    verbose = args.verbose or args.dry_run
 
     if args.list:
         print("Entradas:", *(f"\n  - {p}" for p in mido.get_input_names()))
@@ -142,20 +147,24 @@ def main() -> None:
                 print("LEDs:               (no encontré la salida del K3; sin LEDs)")
         threading.Thread(target=feedback_loop, args=(vport, router, k3_out), daemon=True).start()
 
-    print("\nMové controles del K3. Ctrl+C para salir.\n")
+    hint = "" if verbose else "  (--verbose para ver cada mensaje)"
+    print(f"\nPuente andando. Mové controles del K3. Ctrl+C para salir.{hint}\n")
 
     with mido.open_input(in_name) as inport:
         try:
             # Sondeo no bloqueante + micro-pausa: así Ctrl+C se atrapa al instante
             # (el bucle bloqueante clásico se queda trabado en código nativo y lo ignora).
+            # OJO: acá NO se imprime por mensaje salvo --verbose. Imprimir en la consola de
+            # Windows tarda varios ms y encola los mensajes siguientes -> knobs con lag.
             while True:
                 for msg in inport.iter_pending():
                     outs = router.translate(msg)
                     for o in outs:
                         if vport:
                             vport.send(bytes(o.bytes()))
-                        print(f"  K3 {msg.type:<13} -> {o}")
-                    if not outs and msg.type in ("control_change", "note_on", "note_off"):
+                        if verbose:
+                            print(f"  K3 {msg.type:<13} -> {o}")
+                    if verbose and not outs and msg.type in ("control_change", "note_on", "note_off"):
                         print(f"  K3 {msg.type:<13} (sin mapeo) {msg}")
                 time.sleep(0.002)
         except KeyboardInterrupt:

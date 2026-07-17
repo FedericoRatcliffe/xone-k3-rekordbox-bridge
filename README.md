@@ -80,6 +80,10 @@ teVirtualMIDI the feedback comes to us instead — no loop.
 - ✅ **Headphone cue** per deck (grid row 1), with LED.
 - ✅ **EQ kill** per band per deck: a button by each EQ knob toggles that band off/on (software
   kill that restores to the knob's real position), with LED indication of the killed state.
+- ✅ **Layer 2 = FX**: flip the K3 to Layer 2 (Latching Layers) for effects — a **per‑channel
+  filter** (Sound Color FX) on the top knobs, **both Beat FX units** (select, depth, beat/time,
+  on/off with LED), and **channel assignment** (SHIFT + encoder cycles the unit through decks
+  1→2→3→4, radio‑style).
 - ✅ **SHIFT layer**: hold the K3's SHIFT button for alternate functions — the bridge tracks
   SHIFT as internal state (the K3 doesn't change its codes under SHIFT).
 - ✅ **Bidirectional LED feedback**: the K3's buttons light up following Rekordbox's real
@@ -142,6 +146,21 @@ teVirtualMIDI the feedback comes to us instead — no loop.
    LED to show the killed state). Global controls (not per‑deck): **Scroll turn** → CC 21
    (relative, browse) · **Scroll push** → Note 14 (folder forward/back) · **SHIFT** → Note 15.
 
+   **Layer 2 (FX)** — switch the K3 to Layer 2 with the LAYER button (Latching Layers = "All
+   Controls"). Same physical controls, different codes:
+
+   | Function | Col 1 (FX1) | Col 2 (FX2) | Col 3 | Col 4 | Type |
+   |---|---|---|---|---|---|
+   | Top knob → per‑channel filter (Sound Color FX) | CC 26 | CC 27 | CC 28 | CC 29 | Absolute |
+   | Encoder push → Beat FX select | Note 88 | Note 89 | — | — | Trigger |
+   | Encoder turn → Beat FX beat/time | CC 22 | CC 23 | — | — | Relative |
+   | 2nd knob → Beat FX depth | CC 30 | CC 31 | — | — | Absolute |
+   | 1st button → Beat FX on/off | Note 84 | Note 85 | — | — | Trigger |
+
+   **SHIFT** in Layer 2 is **Note 19**. **SHIFT + encoder turn** (col 1/2) cycles that Beat FX
+   unit through decks 1→2→3→4. Set the FX on/off buttons to **LED MODE = REMOTE** for on‑state
+   indication. Full detail in **[docs/MIDI_REFERENCE.md](docs/MIDI_REFERENCE.md)**.
+
 5. In **Rekordbox → Preferences → Audio**, make sure the audio device is **your real
    interface**, *not* the DDJ-SX2 (the emulated device is not a real sound card).
 6. **Run the bridge first, then open Rekordbox** (order matters — the bridge must grab the K3
@@ -189,6 +208,9 @@ python src\main.py --list     # list MIDI ports and exit
 - Rekordbox does **not** expose effect sub‑parameters (e.g. reverb Room Size / Decay) over
   MIDI — only effect depth + beat/time. For fine FX‑parameter control, route audio through
   Ableton (where a real reverb exposes those as MIDI‑mappable parameters).
+- Beat FX can be assigned to **decks 1‑4** from the K3, but **not to Master**: the DDJ‑SX2
+  profile only exposes per‑deck FX‑assign over MIDI (master assign exists only in the DDJ‑1000
+  profile, which we can't use because its channel fader is disabled over MIDI).
 - This works by matching a supported Pioneer device **name** so Rekordbox loads its native
   MIDI profile. It does not modify or crack Rekordbox. Use at your own risk.
 
@@ -267,6 +289,10 @@ fantasma. Con teVirtualMIDI el feedback nos llega a nosotros — sin loop.
 - ✅ **Headphone cue** por deck (grilla fila 1), con LED.
 - ✅ **EQ kill** por banda y por deck: un botón al lado de cada knob de EQ apaga/prende esa
   banda (kill por software que restaura a la posición real del knob), con LED del estado.
+- ✅ **Layer 2 = FX**: pasá el K3 a Layer 2 (Latching Layers) para los efectos — un **filtro
+  por canal** (Sound Color FX) en los knobs de arriba, **las dos unidades de Beat FX** (select,
+  depth, beat/time, on/off con LED), y **asignación de canal** (SHIFT + encoder cicla la unidad
+  por los decks 1→2→3→4, estilo "radio").
 - ✅ **Capa SHIFT**: mantené el botón SHIFT del K3 para funciones alternativas — el bridge
   lleva el SHIFT como estado interno (el K3 no cambia sus códigos con SHIFT).
 - ✅ **Feedback de LEDs bidireccional**: los botones del K3 se prenden siguiendo el estado
@@ -331,6 +357,21 @@ fantasma. Con teVirtualMIDI el feedback nos llega a nosotros — sin loop.
    LED para mostrar el estado). Controles globales (no por deck): **Scroll turn** → CC 21
    (relativo, browse) · **Scroll push** → Note 14 (carpeta adelante/atrás) · botón **SHIFT** → Note 15.
 
+   **Layer 2 (FX)** — pasá el K3 a Layer 2 con el botón LAYER (Latching Layers = "All
+   Controls"). Mismos controles físicos, distintos códigos:
+
+   | Función | Col 1 (FX1) | Col 2 (FX2) | Col 3 | Col 4 | Tipo |
+   |---|---|---|---|---|---|
+   | Knob de arriba → filtro por canal (Sound Color FX) | CC 26 | CC 27 | CC 28 | CC 29 | Absoluto |
+   | Encoder push → Beat FX select | Note 88 | Note 89 | — | — | Trigger |
+   | Encoder turn → Beat FX beat/time | CC 22 | CC 23 | — | — | Relativo |
+   | 2º knob → Beat FX depth | CC 30 | CC 31 | — | — | Absoluto |
+   | 1º botón → Beat FX on/off | Note 84 | Note 85 | — | — | Trigger |
+
+   El **SHIFT** en Layer 2 es **Note 19**. **SHIFT + encoder turn** (col 1/2) cicla esa unidad
+   de Beat FX por los decks 1→2→3→4. Poné los botones de FX on/off en **LED MODE = REMOTE** para
+   ver el estado. Detalle completo en **[docs/MIDI_REFERENCE.md](docs/MIDI_REFERENCE.md)**.
+
 5. En **Rekordbox → Preferencias → Audio**, asegurate de que el dispositivo de audio sea **tu
    interfaz real**, *no* el DDJ-SX2 (el dispositivo emulado no es una placa de sonido real).
 6. **Corré el puente primero, después abrí Rekordbox** (el orden importa — el puente tiene que
@@ -379,6 +420,9 @@ python src\main.py --list     # lista los puertos MIDI y sale
 - Rekordbox **no** expone por MIDI los sub‑parámetros de efectos (ej. Room Size / Decay del
   reverb) — solo el depth + beat/time. Para control fino de parámetros de FX, ruteá el audio
   por Ableton (donde un reverb real expone esos parámetros como mapeables por MIDI).
+- Los Beat FX se pueden asignar a los **decks 1‑4** desde el K3, pero **no al Master**: el
+  perfil del DDJ‑SX2 solo expone el FX‑assign por deck por MIDI (el assign a Master existe solo
+  en el perfil del DDJ‑1000, que no podemos usar porque tiene el channel fader desactivado por MIDI).
 - Esto funciona haciendo coincidir el **nombre** de un dispositivo Pioneer soportado para que
   Rekordbox cargue su perfil MIDI nativo. No modifica ni crackea Rekordbox. Usalo bajo tu
   propia responsabilidad.
