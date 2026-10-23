@@ -11,12 +11,18 @@ del mapa de entrada, y ese deck define el CANAL de salida (Pioneer: deck1=ch0 ..
 """
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import mido
 import yaml
 
-ROOT = Path(__file__).resolve().parent.parent
+# Raíz del proyecto. Empaquetado como .exe (PyInstaller) es la carpeta del ejecutable:
+# ahí van config/ (editable) y state/. Desde el código fuente es la carpeta del repo.
+if getattr(sys, "frozen", False):
+    ROOT = Path(sys.executable).resolve().parent
+else:
+    ROOT = Path(__file__).resolve().parent.parent
 INPUT_CFG = ROOT / "config" / "xone_k3_input.yaml"
 TARGET_CFG = ROOT / "config" / "rekordbox_target.yaml"
 

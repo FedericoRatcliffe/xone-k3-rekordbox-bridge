@@ -181,4 +181,21 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    if getattr(sys, "frozen", False):
+        # Como .exe con doble click, la consola se cierra al salir: pausamos para que se
+        # pueda leer el error (ej. "No encontré el K3").
+        try:
+            main()
+        except SystemExit as e:
+            if e.code not in (None, 0):
+                print(e.code if isinstance(e.code, str) else f"Salida con código {e.code}")
+                input("\nPresioná Enter para cerrar...")
+                raise SystemExit(1)
+            raise
+        except Exception:
+            import traceback
+            traceback.print_exc()
+            input("\nPresioná Enter para cerrar...")
+            raise SystemExit(1)
+    else:
+        main()

@@ -4,6 +4,10 @@ __pycache__/
 *.pyc
 *.pyo
 
+# Build del ejecutable (PyInstaller, ver build_exe.ps1)
+build/
+dist/
+
 # Estado runtime (posiciones de faders/knobs recordadas)
 state/
 

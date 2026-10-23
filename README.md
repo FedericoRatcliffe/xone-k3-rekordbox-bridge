@@ -183,6 +183,18 @@ python src\main.py --list     # list MIDI ports and exit
 - Always start the bridge **before** Rekordbox.
 - **Ctrl+C** stops it cleanly and saves fader/EQ positions.
 
+### Standalone executable (.exe)
+
+You can package the bridge as a single `XoneK3Bridge.exe`, so it runs without Python:
+
+```powershell
+.\build_exe.ps1   # -> dist\XoneK3Bridge\XoneK3Bridge.exe + config\  (and a .zip)
+```
+
+The target PC still needs **loopMIDI** installed (for the teVirtualMIDI driver), and the
+`config\` folder must stay next to the `.exe`. The same flags (`--list`, `--dry-run`, …)
+work. Details in **[docs/BUILD_EXE.md](docs/BUILD_EXE.md)**.
+
 ### Configuration
 
 - `config/xone_k3_input.yaml` — what each K3 control sends (per column / deck).
@@ -393,6 +405,18 @@ python src\main.py --list     # lista los puertos MIDI y sale
 
 - Arrancá siempre el puente **antes** que Rekordbox.
 - **Ctrl+C** lo corta prolijo y guarda las posiciones de faders/EQ.
+
+### Ejecutable (.exe)
+
+Podés empaquetar el puente como un único `XoneK3Bridge.exe`, que corre sin Python:
+
+```powershell
+.\build_exe.ps1   # -> dist\XoneK3Bridge\XoneK3Bridge.exe + config\  (y un .zip)
+```
+
+La PC donde se use igual necesita **loopMIDI** instalado (por el driver teVirtualMIDI), y la
+carpeta `config\` tiene que quedar al lado del `.exe`. Funcionan los mismos flags (`--list`,
+`--dry-run`, …). Detalle en **[docs/BUILD_EXE.md](docs/BUILD_EXE.md)**.
 
 ### Configuración
 
